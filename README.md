@@ -11,7 +11,6 @@ This server is based on a modified version of [`urbanterror-slim`](urbanterror-s
 ### ✨ Server Features
 
 - **Optimized Q3e base**: Using the Q3e engine for better performance
-- **Improved rendering**: OpenGL and Vulkan renderer optimizations
 - **Multi-architecture**: Support for x86_64, ARM64 (Raspberry Pi 64bit)
 - **DoS protection**: Enhanced security against denial of service attacks
 - **Extended limits**: Support for up to 20,000 maps in a single directory
