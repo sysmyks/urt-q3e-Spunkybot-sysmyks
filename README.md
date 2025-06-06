@@ -53,7 +53,7 @@ This version of SpunkyBot has been specially adapted to work with the modified Q
 
 ### Prerequisites
 
-- Urban Terror 4.3 installed
-- Python 3.x (for SpunkyBot)
+- ou must have a mapcycle.txt file, spunkybot only recognizes maps listed in mapcycle.txt
+- Python 2.7 (for SpunkyBot), and python 3 for translation mod
 - Linux/Windows/Raspberry Pi 64bit server
 
