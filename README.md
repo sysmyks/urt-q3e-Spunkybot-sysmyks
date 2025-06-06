@@ -1,4 +1,4 @@
-# Urban Terror Jump Server with Modified SpunkyBot
+# Q3e Urban Terror Jump Server with Modified SpunkyBot
 
 This project combines an Urban Terror server specially modified for Jump mode with an adapted version of the SpunkyBot administration bot. This solution is optimized to provide a smooth parkour experience and simplified administration features.
 
