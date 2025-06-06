@@ -1,0 +1,171 @@
+{
+    "ut43_icyjumps5d_extras": {
+        "difficulty": [
+            "60"
+        ], 
+        "jumps": "4", 
+        "author": "Rambetter"
+    }, 
+    "ut4_bstoldveteran_b1": {
+        "difficulty": [
+            "45"
+        ], 
+        "jumps": "4", 
+        "author": "Moonie"
+    }, 
+    "ut43_aurorace-blue_a1": {
+        "difficulty": [
+            "5"
+        ], 
+        "jumps": "1", 
+        "author": "mikeu"
+    }, 
+    "ssmc24-biddle_b1": {
+        "difficulty": [
+            "25"
+        ], 
+        "jumps": "1", 
+        "author": "Biddle"
+    }, 
+    "ut43_icyfunspot": {
+        "difficulty": [
+            "55"
+        ], 
+        "jumps": "21", 
+        "author": "Sysmyks and Rootsman"
+    }, 
+    "ut43_icyworld1b": {
+        "difficulty": [
+            "50"
+        ], 
+        "jumps": "12", 
+        "author": "Rambetter"
+    }, 
+    "ut43_icysequel1a": {
+        "difficulty": [
+            "50"
+        ], 
+        "jumps": "28", 
+        "author": "Rambetter"
+    }, 
+    "ut43_lucifer_b2": {
+        "difficulty": [
+            "60"
+        ], 
+        "jumps": "14", 
+        "author": "Hugo Stupz"
+    }, 
+    "ut43_icymonster_v1": {
+        "difficulty": [
+            "60"
+        ], 
+        "jumps": "22", 
+        "author": "Sysmyks"
+    }, 
+    "ut4_orbit_b1": {
+        "difficulty": [
+            "40"
+        ], 
+        "jumps": "7", 
+        "author": "ulbens Vivaldi"
+    }, 
+    "ssmc24-sysmyks-v3": {
+        "difficulty": [
+            "45"
+        ], 
+        "jumps": "4", 
+        "author": "Sysmyks"
+    }, 
+    "ut4_tracia_b1": {
+        "difficulty": [
+            "55"
+        ], 
+        "jumps": "22", 
+        "author": "V!0"
+    }, 
+    "ut43_sphere": {
+        "difficulty": [
+            "80"
+        ], 
+        "jumps": "16", 
+        "author": "Vivaldi"
+    }, 
+    "ssmc24-lauty_b1": {
+        "difficulty": [
+            "55"
+        ], 
+        "jumps": "4", 
+        "author": "Lau"
+    }, 
+    "ut43_lafumisterie_v2": {
+        "difficulty": [
+            "50"
+        ], 
+        "jumps": "18", 
+        "author": "Sysmyks"
+    }, 
+    "ut43_green_solo_v2": {
+        "difficulty": [
+            "50"
+        ], 
+        "jumps": "17", 
+        "author": "Quak"
+    }, 
+    "ssmc24-fliro": {
+        "difficulty": [
+            "55"
+        ], 
+        "jumps": "4", 
+        "author": "Flirow"
+    }, 
+    "ut42_fun_toxic_b1": {
+        "difficulty": [
+            "60"
+        ], 
+        "jumps": "9", 
+        "author": "V!0"
+    }, 
+    "ut43_icyproto_b1": {
+        "difficulty": [
+            20, 
+            ""
+        ], 
+        "jumps": 5, 
+        "author": "Sysmyks"
+    }, 
+    "ut43_disinsmoothed_b4": {
+        "difficulty": [
+            "70"
+        ], 
+        "jumps": "32", 
+        "author": "quak"
+    }, 
+    "ut42_bstjumps_u2": {
+        "difficulty": [
+            "50"
+        ], 
+        "jumps": "46", 
+        "author": "Moonie"
+    }, 
+    "ut43_obsidian_v8": {
+        "difficulty": [
+            "50"
+        ], 
+        "jumps": "13", 
+        "author": "Sysmyks"
+    }, 
+    "ut42_exil_jump": {
+        "difficulty": [
+            "85"
+        ], 
+        "jumps": "19", 
+        "author": "V!0"
+    }, 
+    "ut43_icyjumps5d": {
+        "difficulty": [
+            "50"
+        ], 
+        "jumps": "22", 
+        "author": "Rambetter"
+    }
+}
