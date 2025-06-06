@@ -6,7 +6,7 @@ This project combines an Urban Terror server specially modified for Jump mode wi
 
 ## 📋 About the Project
 
-This server is based on a modified version of [`urbanterror-slim-sysmyks`](urbanterror-slim-sysmyks), derived from Q3e, with significant improvements for Jump mode. SpunkyBot has been adapted to be fully compatible with the Q3e server and offer simplified administration features.
+This server is based on a modified version of [`urbanterror-slim`](urbanterror-slim-sysmyks), derived from Q3e, with significant improvements for Jump mode. SpunkyBot has been adapted to be fully compatible with the Q3e server and offer simplified administration features.
 
 ### ✨ Server Features
 
