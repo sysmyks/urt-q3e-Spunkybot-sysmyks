@@ -37,7 +37,7 @@ This server is based on a modified version of [`urbanterror-slim`](urbanterror-s
 The server includes an advanced race tracking system with:
 - `isReady` variable to check if a player is in Ready mode
 - `isRunning` variable to monitor if a player is in the middle of a race
-- Configurable warnings before allowing position loading during a race
+- Warnings before allowing position loading during a race
 - Protection against accidental teleportations that could compromise race integrity
 
 ## 🤖 Modified SpunkyBot
