@@ -2,7 +2,7 @@
 
 This project combines an Urban Terror server specially modified for Jump mode with an adapted version of the SpunkyBot administration bot. This solution is optimized to provide a smooth parkour experience and simplified administration features.
 
-![Urban Terror Jump](https://images.app.goo.gl/dYHH1McooYPgFiMN6)
+![Urban Terror Jump](pngegg.png)
 
 ## 📋 About the Project
 
