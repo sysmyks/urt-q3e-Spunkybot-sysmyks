@@ -55,5 +55,5 @@ This version of SpunkyBot has been specially adapted to work with the modified Q
 
 - ou must have a mapcycle.txt file, spunkybot only recognizes maps listed in mapcycle.txt
 - Python 2.7 (for SpunkyBot), and python 3 for translation mod
-- Linux/Windows/Raspberry Pi 64bit server
+- Linux/Windows/Raspberry Pi 64bit 
 
