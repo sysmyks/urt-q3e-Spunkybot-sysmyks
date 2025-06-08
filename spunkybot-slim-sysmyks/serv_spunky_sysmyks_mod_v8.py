@@ -2235,7 +2235,7 @@ class LogParser(object):
                 else: 
                     self.game.rcon_tell(sar['player_num'], "^7You are not registered! ^7Please ^9!register ^7to use this command.")
 
-            # Commande !glist
+            # !glist command
             elif sar['command'] == '!glist': 
                 if self.game.players[sar['player_num']].get_admin_role() >= COMMANDS['glist']['level']:
                     current_map = self.get_current_map()
@@ -2247,17 +2247,17 @@ class LogParser(object):
                                 map_data = json.load(file)
                             
                             if map_data:
-                                # Tri alphabétique simple des points
+                                # Simple alphabetical sorting of points
                                 sorted_points = sorted(map_data.keys())
                                 
-                                # Construction du message de réponse
+                                # Building the response message
                                 msg = "^9Goto list: ^7{}".format(", ".join(sorted_points))
                             else:
-                                msg = "^8Aucune position trouvée pour cette carte."
+                                msg = "^8No positions found for this map."
                         else:
-                            msg = "^8Aucune position trouvée pour cette carte."
+                            msg = "^8No positions found for this map."
                     else:
-                        msg = "^8Impossible de récupérer la carte actuelle."
+                        msg = "^8Unable to retrieve current map."
 
                     self.tell_say_message(sar, msg)
                 else:    
