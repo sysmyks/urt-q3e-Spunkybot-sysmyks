@@ -772,10 +772,33 @@ class LogParser(object):
 
 
     def save_records(self):
-        """Saves records without duplicates to the JSON file."""
-        with open(self.records_file, 'w') as f:
-            json.dump(self.jump_records, f, indent=4, sort_keys=True)
-    
+        """
+        Saves records without duplicates to the JSON file with proper error handling
+        """
+        try:
+            # Check if directory exists
+            records_dir = os.path.dirname(self.records_file)
+            if not os.path.exists(records_dir):
+                os.makedirs(records_dir)
+                logger.info("Creating directory for records: %s", records_dir)
+            
+            # Save data to a temporary file first
+            temp_file = self.records_file + ".tmp"
+            with open(temp_file, 'w') as f:
+                json.dump(self.jump_records, f, indent=4, sort_keys=True)
+            
+            # Instead of os.replace (Python 3 only), use os.rename for Python 2.7
+            # First delete the target file if it exists
+            if os.path.exists(self.records_file):
+                os.remove(self.records_file)
+            os.rename(temp_file, self.records_file)
+            
+            logger.debug("Records saved successfully to %s", self.records_file)
+            return True
+        except Exception as e:
+            logger.error("Error saving records: %s", str(e), exc_info=True)
+            return False
+        
     
 
       
@@ -1438,45 +1461,75 @@ class LogParser(object):
 
     def handle_jump_run_stopped(self, line):
         """
-        handle_jump_run_stopped
+        handle_jump_run_stopped with improved error handling and logging
         """
-        parts = line.split('- way: ')
-        if len(parts) < 2:
-            logger.error('Invalid jump run stopped line: {}'.format(line))
-            return
-
         try:
+            # Parse log line
+            logger.debug("Jump run stopped raw line: %s", line)
+            parts = line.split('- way: ')
+            if len(parts) < 2:
+                logger.error('Invalid line format for jump_run_stopped: %s', line)
+                return
+
             way_time = parts[1].split(' - time: ')
             if len(way_time) != 2:
-                raise ValueError('Missing time part')
+                logger.error('Invalid time format: %s', parts[1])
+                return
 
             player_id = int(parts[0])
-            way = int(way_time[0])
-            way = str(way)
-            time = int(way_time[1])
-        except (ValueError, IndexError) as e:
-            logger.error('Error parsing jump run stopped line: {} ({})'.format(line, e))
-            return
+            way = str(way_time[0])  # Convert directly to string to avoid errors
+            time_ms = int(way_time[1])
 
-        if player_id in self.jump_times:
-            jump_time = time
+            # Check if player had started a run
+            if player_id not in self.jump_times:
+                logger.warning("Received finished run without a started run for player %d", player_id)
+                return
+
+            # Get player information
             player_name = self.get_player_name(player_id)
-            player_num = self.game.players[player_id].get_player_num()
             current_map = self.get_current_map()
+            
+            logger.info("Recording run: Player=%s, Map=%s, Way=%s, Time=%d ms", 
+                        player_name, current_map, way, time_ms)
 
+            # Check if structure already exists for this map
             if current_map not in self.jump_records:
                 self.jump_records[current_map] = {}
+                logger.debug("New map entry created: %s", current_map)
 
+            # Check if player already has records on this map
             if player_name not in self.jump_records[current_map]:
                 self.jump_records[current_map][player_name] = {}
+                logger.debug("New player entry created: %s", player_name)
 
-            if way not in self.jump_records[current_map][player_name] or jump_time < self.jump_records[current_map][player_name][way]:
-                self.jump_records[current_map][player_name][way] = jump_time
+            # Check if this is a new record or an improvement
+            is_new_record = way not in self.jump_records[current_map][player_name] 
+            is_better_time = (is_new_record or time_ms < self.jump_records[current_map][player_name][way])
+            
+            # Update record if better
+            if is_better_time:
+                self.jump_records[current_map][player_name][way] = time_ms
                 self.save_records()
-                logger.info('New record for player {} on map {} (way {}): {} ms'.format(player_name, current_map, way, jump_time))
                 
-
+                # Format and display new record message
+                minutes = time_ms // 60000
+                seconds = (time_ms % 60000) // 1000
+                milliseconds = time_ms % 1000
+                
+                message = "^9New record! ^7{} ^9Way {}: ^7{}m {}s {}ms".format(
+                    player_name, way, minutes, seconds, milliseconds
+                )
+                player_num = self.game.players[player_id].get_player_num()
+                self.game.rcon_say(message)
+                
+                logger.info("New record for %s on %s (way %s): %d ms", 
+                            player_name, current_map, way, time_ms)
+            
+            # Cleanup
             del self.jump_times[player_id]
+            
+        except Exception as e:
+            logger.error("Error in handle_jump_run_stopped: %s", str(e), exc_info=True)
 
     def get_player_name(self, player_id):
         if player_id in self.game.players:
