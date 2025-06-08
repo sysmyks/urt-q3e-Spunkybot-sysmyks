@@ -1023,33 +1023,7 @@ class LogParser(object):
                 with open(messages_file, 'w') as file:
                     json.dump(pending_messages, file, indent=4)
     
-    def schedule_regainstamina_for_all_players(self):
-        """
-        Schedule activation of regainstamina for all players after a short delay
-        to ensure they are all connected
-        """
-        processor = Thread(target=self.delayed_regainstamina_for_all_players)
-        processor.setDaemon(True)
-        processor.start()
-
-    def delayed_regainstamina_for_all_players(self):
-        """
-        Activate regainstamina for all players after a short delay
-        """
-        # Wait a few seconds for players to connect
-        time.sleep(5)
-        
-        with self.players_lock:
-            # Apply regainstamina to all non-spectator players
-            for player in self.game.players.itervalues():
-                player_num = player.get_player_num()
-                # Ignore bot and spectators
-                if player_num == BOT_PLAYER_NUM or player.get_team() == 3:
-                    continue
-                
-                player_name = player.get_name()
-                self.game.send_rcon("spoof %s regainstamina" % player_name)
-                logger.debug("Applied regainstamina to %s after map change", player_name)
+    
     
     def parse_line(self, string):
         """
@@ -1197,9 +1171,7 @@ class LogParser(object):
         current_map = self.get_current_map()
         if current_map:
             self.load_map_cvars(current_map)
-        # Schedule regainstamina activation for all players
-        self.schedule_regainstamina_for_all_players()
-
+        
     def handle_spawn(self, line):
         """
         handle client spawn
