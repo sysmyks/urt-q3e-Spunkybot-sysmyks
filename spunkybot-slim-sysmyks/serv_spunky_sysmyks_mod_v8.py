@@ -1023,8 +1023,6 @@ class LogParser(object):
                 with open(messages_file, 'w') as file:
                     json.dump(pending_messages, file, indent=4)
     
-    
-    
     def parse_line(self, string):
         """
         parse the logfile and search for specific action
@@ -1172,6 +1170,7 @@ class LogParser(object):
         if current_map:
             self.load_map_cvars(current_map)
         
+
     def handle_spawn(self, line):
         """
         handle client spawn
@@ -2246,14 +2245,19 @@ class LogParser(object):
                         if os.path.exists(map_json_file):
                             with open(map_json_file, 'r') as file:
                                 map_data = json.load(file)
-                           # Prepare a readable response for the user
-                            msg = "^9Goto list : "
-                            for jump_name, position in map_data.items():
-                                msg += "\n^7{},".format(jump_name)
+                            
+                            if map_data:
+                                # Tri alphabétique simple des points
+                                sorted_points = sorted(map_data.keys())
+                                
+                                # Construction du message de réponse
+                                msg = "^9Goto list: ^7{}".format(", ".join(sorted_points))
+                            else:
+                                msg = "^8Aucune position trouvée pour cette carte."
                         else:
-                            msg = "^8No positions found for the current map."
+                            msg = "^8Aucune position trouvée pour cette carte."
                     else:
-                        msg = "^8Unable to retrieve current map."
+                        msg = "^8Impossible de récupérer la carte actuelle."
 
                     self.tell_say_message(sar, msg)
                 else:    
