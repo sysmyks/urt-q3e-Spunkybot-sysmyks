@@ -615,6 +615,28 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	ps = SV_GameClientNum( cl );
 	frame->ps = *ps;
 
+	//sv_infinitestamina
+	// Application de la stamina infinie APRÈS la copie dans frame->ps
+	if ((!client->cm.infiniteStamina && sv_infiniteStamina->integer) || client->cm.infiniteStamina == 1) {
+		if (SV_GetClientTeam(client - svs.clients) != TEAM_SPECTATOR) {
+			// Modifier aussi ps pour éviter les écrasements
+			ps->stats[0] = 30000;
+			
+			// Puis modifier frame->ps aussi
+			frame->ps.stats[0] = 30000;
+			
+			// En plus, modifier ces paramètres supplémentaires qui pourraient affecter la stamina
+			// Ces paramètres sont spécifiques à Urban Terror et peuvent contrôler l'essoufflement
+			frame->ps.stats[12] = 0;    // stats[12] pourrait être lié à l'essoufflement
+			frame->ps.stats[15] = 0;    // stats[15] pourrait être lié à la fatigue
+			
+			// Modifier certains flags qui pourraient contrôler l'état du joueur
+			frame->ps.eFlags &= ~(1<<7); // Désactiver un possible flag d'essoufflement
+			
+			
+		}
+	}
+
 	clientNum = frame->ps.clientNum;
 	if ( clientNum < 0 || clientNum >= MAX_GENTITIES ) {
 		Com_Error( ERR_DROP, "SV_SvEntityForGentity: bad gEnt" );

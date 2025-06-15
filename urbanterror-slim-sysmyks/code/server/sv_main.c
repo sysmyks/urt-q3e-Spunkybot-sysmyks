@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 
+extern qboolean SV_IsClientGhost(client_t *cl);
+extern void SV_GhostThink(client_t *cl);
+
 serverStatic_t	svs;				// persistant server info
 server_t		sv;					// local server
 vm_t			*gvm = NULL;		// game virtual machine
@@ -72,7 +75,7 @@ cvar_t	*sv_tellprefix;
 cvar_t	*sv_sayprefix;
 cvar_t	*sv_gotoMsgBigtext;
 cvar_t	*sv_nofallDamage;
-cvar_t  *sv_infiniteStamina;
+extern cvar_t  *sv_infiniteStamina;
 
 /*
 =============================================================================
@@ -1427,10 +1430,49 @@ void SV_Frame( int msec ) {
 		sv.timeResidual -= frameMsec;
 		svs.time += frameMsec;
 		sv.time += frameMsec;
+		// Appliquer le mode ghost pour tous les clients avant d'exécuter la frame
+        if (sv_gametype->integer == 9) { // Si c'est le mode Jump
+            client_t *cl;
+            int i;
+            
+            for (i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++) {
+                if (cl->state >= CS_CONNECTED) {
+                    // Mettre à jour l'état ghost
+                    if (cl->state == CS_ACTIVE) {
+						// Vérifier si le joueur est spectateur
+						playerState_t *ps = SV_GameClientNum(i);
+						qboolean isSpectator = (ps->persistant[PERS_TEAM] == TEAM_SPECTATOR);
+						
+						// Ne pas mettre à jour le statut ghost pour les spectateurs
+						if (!isSpectator) {
+							qboolean oldGhost = cl->cm.ghost;
+							cl->cm.ghost = SV_IsClientGhost(cl);
+							
+							// Informer le joueur si l'état a changé
+							if (oldGhost != cl->cm.ghost) {
+								if (cl->cm.ghost) {
+									SV_SendServerCommand(cl, "print \"^7Ghost Mode turned ^2on^7\n\"");
+								} else {
+									SV_SendServerCommand(cl, "print \"^7Ghost Mode turned ^1off^7\n\"");
+								}
+							}
+						} else {
+							// Pour les spectateurs, simplement réinitialiser l'état ghost sans notification
+							if (cl->cm.ghost) {
+								cl->cm.ghost = qfalse;
+							}
+						}
+					}
+                    
+                    // Appliquer le mode ghost
+                    SV_GhostThink(cl);
+                }
+            }
+        }
 
-		// let everything in the world think and move
-		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
-	}
+        // let everything in the world think and move
+        VM_Call(gvm, 1, GAME_RUN_FRAME, sv.time);
+    }
 
 	if ( com_speeds->integer ) {
 		time_game = Sys_Milliseconds () - startTime;

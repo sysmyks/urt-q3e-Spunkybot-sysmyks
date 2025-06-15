@@ -1838,6 +1838,49 @@ static void SV_SavePlayerPos_f(void) {
 			   ps->viewangles[0], ps->viewangles[1], ps->viewangles[2]);
 }
 
+/////////////////////////////////////////////////////////////////////
+// Name        : SV_InfiniteStamina_f
+// Description : Active/désactive la stamina infinie pour un joueur
+/////////////////////////////////////////////////////////////////////
+static void SV_InfiniteStamina_f(void) {
+    client_t *cl;
+    
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        Com_Printf("Server is not running.\n");
+        return;
+    }
+
+    // vérifier si on a un argument (nom du joueur)
+    if (Cmd_Argc() != 2) {
+        Com_Printf("Usage: infinitestamina <player name>\n");
+        return;
+    }
+
+    // rechercher le joueur par nom/ID
+    cl = SV_GetPlayerByHandle(); // Utiliser la fonction existante
+    if (!cl) {
+        Com_Printf("Player not found.\n");
+        return;
+    }
+
+    // basculer l'état de la stamina infinie pour ce joueur
+    if (cl->cm.infiniteStamina == 1) {
+        cl->cm.infiniteStamina = 2; // désactivé
+        Com_Printf("^7Infinite stamina disabled for %s.\n", cl->name);
+        SV_SendServerCommand(cl, "print \"^7Your infinite stamina has been disabled.\n\"");
+    } else {
+        // vérifier si le joueur est en état "ready"
+        if (cl->cm.ready) {
+            Com_Printf("^7Cannot enable infinite stamina for player %s in ready state.\n", cl->name);
+            return;
+        }
+        cl->cm.infiniteStamina = 1; // activé
+        Com_Printf("^7Infinite stamina enabled for %s.\n", cl->name);
+        SV_SendServerCommand(cl, "print \"^7Your infinite stamina has been enabled.\n\"");
+    }
+}
+
 //===========================================================
 
 /*
@@ -1911,7 +1954,7 @@ void SV_AddOperatorCommands( void ) {
 	Cmd_AddCommand( "filter", SV_AddFilter_f );
 	Cmd_AddCommand( "filtercmd", SV_AddFilterCmd_f );
 
-    
+    Cmd_AddCommand ("infinitestamina", SV_InfiniteStamina_f);
 	Cmd_AddCommand ("saveplayerpos", SV_SavePlayerPos_f);
 	Cmd_AddCommand ("loadplayerpos", SV_LoadPlayerPos_f);
 	Cmd_AddCommand("spoof", SV_Spoof_f);

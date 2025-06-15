@@ -121,6 +121,13 @@ typedef enum {
 	CS_ACTIVE		// client is fully in game
 } clientState_t;
 
+typedef enum {
+    OFFSET_PS_HEALTH,
+    OFFSET_PS_STAMINA,
+	OFFSET_PS_MAX,
+} playerStateOffsets_t;
+
+
 typedef struct netchan_buffer_s {
 	msg_t           msg;
 	byte            msgBuffer[MAX_MSGLEN];
@@ -154,6 +161,8 @@ typedef struct {
 	vec3_t savedPosition;      // Saved position for /load command
 	vec3_t savedPositionAngle; // Saved angles for /load command
 	qboolean ready;            // Player ready state (probably redundant with isReady)
+	qboolean ghost;
+	int infiniteStamina;
 } clientMove_t;
 
 typedef struct client_s {
@@ -230,7 +239,6 @@ typedef struct client_s {
 	qboolean isRunning;
 	clientMove_t cm;
 	
-
 #ifdef USE_AUTH
 	char auth[MAX_NAME_LENGTH];
 #endif
@@ -362,6 +370,7 @@ extern	cvar_t	*sv_tellprefix;
 extern	cvar_t *sv_gotoMsgBigtext;
 extern  cvar_t  *sv_nofallDamage;
 extern  cvar_t  *sv_infiniteStamina;
+extern cvar_t *mod_ghostRadius;
 
 //===========================================================
 
@@ -396,7 +405,6 @@ void SV_GetUserinfo( int index, char *buffer, int bufferSize );
 
 void SV_ChangeMaxClients( void );
 void SV_SpawnServer( const char *mapname, qboolean killBots );
-
 
 
 //
@@ -453,6 +461,9 @@ int SV_RemainingGameState( void );
 // sv_game.c
 //
 int	SV_NumForGentity( sharedEntity_t *ent );
+int SV_GetClientTeam(int clientNum);
+extern int playerStatsOffsets[1][OFFSET_PS_MAX];
+int getVersion(void);
 sharedEntity_t *SV_GentityNum( int num );
 playerState_t *SV_GameClientNum( int num );
 svEntity_t	*SV_SvEntityForGentity( sharedEntity_t *gEnt );

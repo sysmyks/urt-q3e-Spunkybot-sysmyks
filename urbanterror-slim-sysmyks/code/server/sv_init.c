@@ -22,6 +22,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 courseDetection_t currentCourse;
+cvar_t *mod_ghostRadius;
+cvar_t *sv_infiniteStamina;
+int playerStatsOffsets[1][OFFSET_PS_MAX] = {
+    // Version 0 (Urban Terror)
+    {
+        14, // OFFSET_PS_HEALTH - position dans le tableau stats[] pour la santé
+        16  // OFFSET_PS_STAMINA - position dans le tableau stats[] pour la stamina
+    }
+};
 
 
 /*
@@ -765,9 +774,11 @@ void SV_Init( void )
 	Cvar_CheckRange( sv_zombietime, "1", NULL, CV_INTEGER );
 	Cvar_SetDescription( sv_zombietime, "Seconds to sink messages after disconnect" );
 	Cvar_Get ("nextmap", "", CVAR_TEMP );
-
+	sv_infiniteStamina = Cvar_Get("sv_infiniteStamina", "0", CVAR_SERVERINFO);
 	sv_allowDownload = Cvar_Get ("sv_allowDownload", "1", CVAR_SERVERINFO);
 	Cvar_Get ("sv_dlURL", "urt.li", CVAR_SERVERINFO | CVAR_ARCHIVE);
+	
+	mod_ghostRadius = Cvar_Get("mod_ghostRadius", "15", CVAR_ARCHIVE);
 
 	// moved to Com_Init()
 	//sv_master[0] = Cvar_Get( "sv_master1", MASTER_SERVER_NAME, CVAR_INIT | CVAR_ARCHIVE_ND );
@@ -798,7 +809,7 @@ void SV_Init( void )
 
 	sv_gotoMsgBigtext = Cvar_Get("sv_gotoMsgBigtext", "0", CVAR_ARCHIVE_ND );
 	sv_nofallDamage = Cvar_Get("sv_nofallDamage", "0", CVAR_ARCHIVE_ND );
-	sv_infiniteStamina = Cvar_Get ("sv_infiniteStamina", "0", CVAR_ARCHIVE_ND );
+	
 	
 	// initialize bot cvars so they are listed and can be set before loading the botlib
 	SV_BotInitCvars();

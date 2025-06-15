@@ -31,6 +31,7 @@ This server is based on a modified version of [`urbanterror-slim`](urbanterror-s
 |----------|-------------|
 | `/rcon saveplayerpos <player-name>` | Saves the position of a specific player |
 | `/rcon loadplayerpos <player-num> <x> <y> <z> <pitch> <yaw> <roll>` | Loads a precise position for a player |
+| `/rcon infinitestamina <player-name>`  | full stamina |
 
 ## 🏃 Race Tracking System
 

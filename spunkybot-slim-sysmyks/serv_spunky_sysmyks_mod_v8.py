@@ -90,6 +90,7 @@ COMMANDS = {'help': {'desc': 'display all available commands', 'syntax': '^7Usag
             'top': {'desc': 'display your records', 'syntax': '^7Usage: ^9!top',  'level': 20},
             'noclip': {'desc': 'noclip', 'syntax': '^7Usage: ^9!noclip or !n',  'level': 20, 'short': 'n'},
             'msgadmin': {'desc': 'send a message to the admin', 'syntax': '^7Usage: ^9!msgadmin <text>', 'level': 20},
+            'stamina': {'desc': 'stamina', 'syntax': '^7Usage: ^9!stamina or !stam',  'level': 20, 'short': 'stam'},
             
             
             # moderator commands, level 20
@@ -2096,6 +2097,20 @@ class LogParser(object):
                                 return
                 else:
                     self.game.rcon_tell(sar['player_num'], "^7You are not registered! ^7Please ^9!register ^7to use this command.")
+
+            #stamina
+            elif sar['command'] in ('!stamina', '!stam'):
+                if self.game.players[sar['player_num']].get_admin_role() >= COMMANDS['stamina']['level']:
+                    player_name = self.game.players[sar['player_num']].get_name()
+                    rcon_command = "infinitestamina {}".format(player_name)
+                    try:
+                        response = self.game.get_rcon_output(rcon_command)  
+                        clean_message = response[1].strip()
+                        self.tell_say_message(sar, ": {}".format(clean_message))
+                    except Exception as e:
+                        self.tell_say_message(sar, "^8Error executing RCON command: {}".format(e))
+                else:
+                    self.game.rcon_tell(sar['player_num'], "^7You are not registered! ^7Please ^9!register ^7to use this command.")            
 
             #noclip
             elif sar['command'] in ('!noclip', '!n'): 

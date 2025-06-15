@@ -35,6 +35,10 @@ static void SV_CloseDownload( client_t *cl );
 #define PM_NOCLIP 1
 #define PERS_NOCLIP 10     // Index of persistant[] to use for noclip
 #define EF_NOCLIP_ENABLE 0x400000 // Value to define according to your code
+#define TEAM_FREE      0
+#define TEAM_RED       1
+#define TEAM_BLUE      2
+#define TEAM_SPECTATOR 3
 /*
 =================
 SV_CreateChallenge
@@ -57,6 +61,15 @@ static int SV_CreateChallenge( int timestamp, const netadr_t *from )
 	return challenge;
 }
 
+// Retourne l'équipe du client
+int SV_GetClientTeam(int clientNum) {
+    if (clientNum < 0 || clientNum >= sv_maxclients->integer) {
+        return TEAM_SPECTATOR;
+    }
+    
+    playerState_t *ps = SV_GameClientNum(clientNum);
+    return ps->persistant[PERS_TEAM]; // Assurez-vous que PERS_TEAM est défini correctement
+}
 
 /*
 =================
@@ -705,6 +718,7 @@ gotnewcl:
 	//sysmyks
 	newcl->isReady = qfalse;
 	newcl->isRunning = qfalse;
+	newcl->cm.ghost = qfalse;
 	newcl->cm.savedPosition[0] = 0;
 	newcl->cm.savedPosition[1] = 0;
 	newcl->cm.savedPosition[2] = 0;
@@ -1135,33 +1149,33 @@ static void SV_SendClientGameState( client_t *client ) {
 SV_ClientEnterWorld
 ==================
 */
-void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
-	int		clientNum;
-	sharedEntity_t *ent;
+void SV_ClientEnterWorld(client_t *cl, usercmd_t *cmd) {
+    int        clientNum;
+    sharedEntity_t *ent;
 
-	Com_DPrintf( "Going from CS_PRIMED to CS_ACTIVE for %s\n", client->name );
-	client->state = CS_ACTIVE;
+    Com_DPrintf("Going from CS_PRIMED to CS_ACTIVE for %s\n", cl->name);
+    cl->state = CS_ACTIVE;
 
-	// resend all configstrings using the cs commands since these are
-	// no longer sent when the client is CS_PRIMED
-	SV_UpdateConfigstrings( client );
+    // resend all configstrings using the cs commands since these are
+    // no longer sent when the client is CS_PRIMED
+    SV_UpdateConfigstrings(cl);
 
-	// set up the entity for the client
-	clientNum = client - svs.clients;
-	ent = SV_GentityNum( clientNum );
-	ent->s.number = clientNum;
-	client->gentity = ent;
+    // set up the entity for the client
+    clientNum = cl - svs.clients;
+    ent = SV_GentityNum(clientNum);
+    ent->s.number = clientNum;
+    cl->gentity = ent;
 
-	client->deltaMessage = client->netchan.outgoingSequence - (PACKET_BACKUP + 1); // force delta reset
-	client->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
+    cl->deltaMessage = cl->netchan.outgoingSequence - (PACKET_BACKUP + 1); // force delta reset
+    cl->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
 
 	if(cmd)
-		memcpy(&client->lastUsercmd, cmd, sizeof(client->lastUsercmd));
-	else
-		memset(&client->lastUsercmd, '\0', sizeof(client->lastUsercmd));
-
-	// call the game begin function
-	VM_Call( gvm, 1, GAME_CLIENT_BEGIN, client - svs.clients );
+        memcpy(&cl->lastUsercmd, cmd, sizeof(cl->lastUsercmd));  // Correction ici
+    else
+        memset(&cl->lastUsercmd, '\0', sizeof(cl->lastUsercmd)); // Correction ici
+	
+    // call the game begin function
+    VM_Call(gvm, 1, GAME_CLIENT_BEGIN, cl - svs.clients);
 }
 
 
@@ -2170,6 +2184,107 @@ static void SV_Ready_f(client_t *cl) {
 	VM_Call(gvm, 2, GAME_CLIENT_COMMAND, cl - svs.clients);
 }
 
+/*
+==================
+SV_IsClientGhost
+Returns whether the client has cg_ghost enabled
+==================
+*/
+qboolean SV_IsClientGhost(client_t *cl) {
+    if (!cl || cl->state != CS_ACTIVE) {
+        return qfalse;
+    }
+
+    // Extract cg_ghost value from userinfo
+    const char *ghostValue = Info_ValueForKey(cl->userinfo, "cg_ghost");
+    
+    // If not found or invalid, default to off
+    if (!ghostValue || !*ghostValue) {
+        return qfalse;
+    }
+    
+    // Check if it's enabled
+    return (atoi(ghostValue) != 0);
+}
+
+/////////////////////////////////////////////////////////////////////
+// SV_GhostThink
+// Fixes the bugged cg_ghost in jump mode
+/////////////////////////////////////////////////////////////////////
+void SV_GhostThink(client_t *cl) {
+    int               i;
+    int               num;
+    int               touch[MAX_GENTITIES];
+    float             rad;
+    vec3_t            mins, maxs;
+    sharedEntity_t    *ent;
+    sharedEntity_t    *oth;
+
+    int cid;
+    cid = cl - svs.clients;
+
+    // if we are not playing jump mode
+    if (sv_gametype->integer != 9) {
+        return;
+    }
+
+    // if the client is a spectator
+    if (SV_GetClientTeam(cid) == TEAM_SPECTATOR) {
+        return;
+    }
+
+    // get the correspondent entity
+    ent = SV_GentityNum(cid);
+    
+    // Toujours modifier le contenu de l'entité si ghost est activé
+    if (cl->cm.ghost) {
+        if (ent->r.contents & CONTENTS_BODY) {
+            ent->r.contents &= ~CONTENTS_BODY;
+            ent->r.contents |= CONTENTS_CORPSE;
+        }
+    } else {
+        // Restaurer le contenu normal si ghost est désactivé
+        if (ent->r.contents & CONTENTS_CORPSE) {
+            ent->r.contents &= ~CONTENTS_CORPSE;
+            ent->r.contents |= CONTENTS_BODY;
+        }
+        return;  // Ne pas continuer si ghost n'est pas activé
+    }
+    
+    // Définir un rayon plus large pour être sûr de ne pas manquer de joueurs
+    rad = Com_Clamp(15.0, 1000.0, mod_ghostRadius->value);
+
+    // calculate the box
+    for (i = 0; i < 3; i++) {
+        mins[i] = ent->r.currentOrigin[i] - rad;
+        maxs[i] = ent->r.currentOrigin[i] + rad;
+    }
+
+    // get the entities the client is touching (the bounding box)
+    num = SV_AreaEntities(mins, maxs, touch, MAX_GENTITIES);
+
+    for (i = 0; i < num; i++) {
+        // if the entity we are touching is not a client 
+        if (touch[i] < 0 || touch[i] >= sv_maxclients->integer) {
+            continue;
+        }
+
+        // get the touched entity
+        oth = SV_GentityNum(touch[i]);
+
+        // if the entity is the client itself
+        if (ent->s.number == oth->s.number) {
+            continue;
+        }
+
+        // Modifier également l'entité touchée pour éviter les collisions bidirectionnelles
+        if (oth->r.contents & CONTENTS_BODY) {
+            oth->r.contents &= ~CONTENTS_BODY;
+            oth->r.contents |= CONTENTS_CORPSE;
+        }
+    }
+}
+
 /////////////////////////////////////////////////////////////////////
 // SV_ServerModInfo_f
 /////////////////////////////////////////////////////////////////////
@@ -2366,36 +2481,54 @@ SV_ClientThink
 Also called by bot code
 ==================
 */
-void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
-	cl->lastUsercmd = *cmd;
+void SV_ClientThink(client_t *cl, usercmd_t *cmd) {
+    cl->lastUsercmd = *cmd;
 
-	if ( cl->state != CS_ACTIVE ) {
-		return;        // may have been kicked during the last usercmd
-	}
+    if (cl->state != CS_ACTIVE) {
+        return;        // may have been kicked during the last usercmd
+    }
 
-	VM_Call( gvm, 1, GAME_CLIENT_THINK, cl - svs.clients );
+    // Get player state and check if spectator FIRST
+    playerState_t *ps = SV_GameClientNum(cl - svs.clients);
+    qboolean isSpectator = (ps->persistant[PERS_TEAM] == TEAM_SPECTATOR);
+    
+    // Pour les spectateurs, juste réinitialiser l'état ghost sans afficher de messages
+    if (isSpectator) {
+        // Réinitialiser silencieusement l'état ghost
+        if (cl->cm.ghost) {
+            cl->cm.ghost = qfalse;
+        }
+        
+        // Réinitialiser "ready" state si nécessaire
+        if (cl->isReady) {
+            cl->isReady = qfalse;
+        }
+        
+        // Réinitialiser "running" state si nécessaire
+        if (cl->isRunning) {
+            cl->isRunning = qfalse;
+            
+            // Si c'était ce client qui avait une course active, réinitialiser les données
+            if (currentCourse.detected && currentCourse.clientNum == (cl - svs.clients)) {
+                Com_Printf("^5Run interrupted for %s (switched to spectator)\n", cl->name);
+                currentCourse.detected = qfalse;
+            }
+        }
+    }
+    // Seulement mettre à jour et appliquer le mode ghost pour les joueurs non-spectateurs
+    else {
+        // Mettre à jour l'état ghost
+        qboolean oldGhost = cl->cm.ghost;
+        cl->cm.ghost = SV_IsClientGhost(cl);
+        
+        
+        
+        // Appliquer le mode ghost
+        SV_GhostThink(cl);
+    }
 
-	playerState_t *ps = SV_GameClientNum(cl - svs.clients);
-	
-	// Check if the player is a spectator but has "ready" state
-	// This will reset the "ready" state if the player becomes a spectator
-	if (ps->persistant[PERS_TEAM] == 3) { // 3 = TEAM_SPECTATOR
-		// Reset "ready" state if necessary
-		if (cl->isReady) {
-			cl->isReady = qfalse;
-		}
-		
-		// Reset "running" state if necessary
-		if (cl->isRunning) {
-			cl->isRunning = qfalse;
-			
-			// If this client was the one with an active run, reset the course data
-			if (currentCourse.detected && currentCourse.clientNum == (cl - svs.clients)) {
-				Com_Printf("^5Run interrupted for %s (switched to spectator)\n", cl->name);
-				currentCourse.detected = qfalse;
-			}
-		}
-	}
+    // Appel au QVM pour traiter la logique du jeu, pour tous les clients
+    VM_Call(gvm, 1, GAME_CLIENT_THINK, cl - svs.clients);
 }
 
 
