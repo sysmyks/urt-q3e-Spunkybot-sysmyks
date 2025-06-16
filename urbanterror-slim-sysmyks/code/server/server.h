@@ -160,7 +160,6 @@ struct leakyBucket_s {
 typedef struct {
 	vec3_t savedPosition;      // Saved position for /load command
 	vec3_t savedPositionAngle; // Saved angles for /load command
-	qboolean ready;            // Player ready state (probably redundant with isReady)
 	qboolean ghost;
 	int infiniteStamina;
 } clientMove_t;

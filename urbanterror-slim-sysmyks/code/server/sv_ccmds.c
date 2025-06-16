@@ -1871,7 +1871,7 @@ static void SV_InfiniteStamina_f(void) {
         SV_SendServerCommand(cl, "print \"^7Your infinite stamina has been disabled.\n\"");
     } else {
         // vérifier si le joueur est en état "ready"
-        if (cl->cm.ready) {
+        if (cl->isReady) {
             Com_Printf("^7Cannot enable infinite stamina for player %s in ready state.\n", cl->name);
             return;
         }

@@ -503,7 +503,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		svs.clients[i].cm.savedPositionAngle[0] = 0;
 		svs.clients[i].cm.savedPositionAngle[1] = 0;
 		svs.clients[i].cm.savedPositionAngle[2] = 0;
-		svs.clients[i].cm.ready = qfalse;
+		
 	}
 	currentCourse.detected = qfalse;
 	currentCourse.startTime = 0;

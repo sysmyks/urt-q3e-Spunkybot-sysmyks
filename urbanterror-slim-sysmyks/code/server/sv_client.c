@@ -725,7 +725,7 @@ gotnewcl:
 	newcl->cm.savedPositionAngle[0] = 0;
 	newcl->cm.savedPositionAngle[1] = 0;
 	newcl->cm.savedPositionAngle[2] = 0;
-	newcl->cm.ready = qfalse;
+	
 
 #if 0 // skip this until CS_PRIMED
 	//ent = SV_GentityNum( clientNum );
@@ -2179,6 +2179,12 @@ static void SV_Ready_f(client_t *cl) {
 	
 	// Toggle ready state for non-spectator players
 	cl->isReady = !cl->isReady;
+	
+	// Si le joueur entre en mode ready, on force la désactivation de infinite stamina (sécurité supplémentaire)
+    if (cl->isReady && cl->cm.infiniteStamina == 1) {
+        cl->cm.infiniteStamina = 2; // désactivé
+        SV_SendServerCommand(cl, "print \"^7Your infinite stamina has been disabled.\n\"");
+    }
 	
 	// Inform game code of this change
 	VM_Call(gvm, 2, GAME_CLIENT_COMMAND, cl - svs.clients);
